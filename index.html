@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>إعادة تعيين كلمة المرور - رحلات الجزائر 🇩🇿</title>
+  <!-- مكتبة Supabase الرسمية المحدثة -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
@@ -17,28 +18,29 @@
       padding: 20px;
     }
     .card {
-      background: rgba(20, 36, 27, 0.95);
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      background: rgba(20, 36, 27, 0.98);
+      border: 1px solid rgba(16, 185, 129, 0.4);
       border-radius: 24px;
       padding: 36px 24px;
       width: 100%;
-      max-width: 420px;
+      max-width: 430px;
       text-align: center;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     }
     h2 { font-size: 20px; margin-bottom: 8px; color: #FFFFFF; }
-    p { font-size: 13px; color: #94A3B8; margin-bottom: 20px; line-height: 1.5; }
+    p.subtitle { font-size: 13px; color: #94A3B8; margin-bottom: 20px; }
     .input-group { margin-bottom: 16px; text-align: right; }
     label { display: block; font-size: 12px; color: #CBD5E1; margin-bottom: 6px; font-weight: 600; }
     input {
       width: 100%;
       padding: 13px 14px;
-      background: rgba(11, 21, 15, 0.8);
-      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(11, 21, 15, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.3);
       border-radius: 12px;
       color: #FFFFFF;
       font-size: 14px;
       outline: none;
+      transition: 0.2s border;
     }
     input:focus { border-color: #10B981; }
     button {
@@ -52,10 +54,11 @@
       border-radius: 12px;
       cursor: pointer;
       margin-top: 10px;
+      transition: 0.2s background;
     }
     button:hover { background: #059669; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    .alert { padding: 14px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; display: none; line-height: 1.5; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .alert { padding: 14px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; line-height: 1.5; text-align: right; }
     .alert-error { background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.4); }
     .alert-success { background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.4); }
     .alert-info { background: rgba(59, 130, 246, 0.2); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.4); }
@@ -64,84 +67,100 @@
 <body>
 
   <div class="card">
-    <div style="font-size: 42px; margin-bottom: 10px;">🔑🇩🇿</div>
-    <h2>تعيين كلمة المرور الجديدة</h2>
-    <p>تطبيق رحلات الجزائر</p>
+    <div style="font-size: 44px; margin-bottom: 10px;">🔑🇩🇿</div>
+    <h2>تغيير كلمة المرور</h2>
+    <p class="subtitle">منصة رحلات الجزائر</p>
 
-    <div id="alertBox" class="alert"></div>
+    <div id="alertBox" class="alert alert-info">جاري التحقق من صلاحية الرابط... ⏳</div>
 
-    <form id="resetForm" onsubmit="handleReset(event)">
+    <form id="resetForm" onsubmit="handleReset(event)" style="display: none;">
       <div class="input-group">
         <label for="newPass">كلمة المرور الجديدة</label>
-        <input type="password" id="newPass" placeholder="••••••••" required minlength="6">
+        <input type="password" id="newPass" placeholder="اكتب كلمة المرور الجديدة" required minlength="6">
       </div>
 
       <div class="input-group">
         <label for="confirmPass">تأكيد كلمة المرور</label>
-        <input type="password" id="confirmPass" placeholder="••••••••" required minlength="6">
+        <input type="password" id="confirmPass" placeholder="أعد كتابة كلمة المرور" required minlength="6">
       </div>
 
-      <button type="submit" id="submitBtn">حفظ كلمة المرور في قاعدة البيانات 🚀</button>
+      <button type="submit" id="submitBtn">حفظ وتحديث كلمة المرور 🚀</button>
     </form>
   </div>
 
   <script>
-    // بيانات مشروعك الفعلي في Supabase
+    // إعدادات Supabase الخاصة بمشروعك
     const SUPABASE_URL = "https://abzxeetfxnejlurqixun.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFienhlZXRmeG5lamx1cnFpeHVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNTQ5MzIsImV4cCI6MjEwMjczMDkzMn0.7w9NKOvO8yE5sXrjc1uUwLuzvL5uHMFgdm1Uxw1xAUA";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    let isSessionReady = false;
-
-    // استخراج معلمات الرابط عند فتح الإيميل
-    async function initAuth() {
-      // التحقق من صلاحية الرابط وأنه استخدام لمرة واحدة ومحدود الوقت
-      const hash = window.location.hash;
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
-
-      if (code) {
-        // في حال كان الرابط يعمل بنظام Auth Code PKCE
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-        if (!error && data.session) {
-          isSessionReady = true;
-          showAlert("تم التحقق من هويتك بنجاح ✅ يمكنك كتابة كلمة المرور الآن.", "alert-info");
-          return;
-        }
+    const { createClient } = window.supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
       }
+    });
 
-      if (hash && hash.includes("access_token")) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-        const refreshToken = params.get("refresh_token");
+    let currentSession = null;
 
-        if (accessToken) {
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || ""
-          });
-
-          if (!error && data.session) {
-            isSessionReady = true;
-            showAlert("تم التحقق من هويتك بنجاح ✅ يمكنك كتابة كلمة المرور الآن.", "alert-info");
-            return;
-          }
-        }
-      }
-
-      // فحص الجلسة العامة
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        isSessionReady = true;
-      } else {
-        showAlert("⚠️ هذا الرابط منتهي الصلاحية أو تم استخدامه مسبقاً. يرجى طلب رابط جديد من التطبيق.", "alert-error");
-        document.getElementById("submitBtn").disabled = true;
-      }
+    function showAlert(msg, type) {
+      const box = document.getElementById("alertBox");
+      box.className = "alert " + type;
+      box.innerHTML = msg;
+      box.style.display = "block";
     }
 
-    initAuth();
+    // مراقبة حدث تغيير حالة المصادقة (PASSWORD_RECOVERY)
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth Event:", event, session);
+      if (event === "PASSWORD_RECOVERY" || session) {
+        currentSession = session;
+        showAlert("تم التحقق من هويتك بنجاح ✅<br>يرجى إدخال كلمة المرور الجديدة أدناه.", "alert-success");
+        document.getElementById("resetForm").style.display = "block";
+      }
+    });
 
+    // معالجة الروابط عند تحميل الصفحة
+    async function checkUrlParams() {
+      const hash = window.location.hash;
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      const errorDescription = urlParams.get("error_description");
+
+      if (errorDescription) {
+        showAlert("⚠️ " + decodeURIComponent(errorDescription), "alert-error");
+        return;
+      }
+
+      if (code) {
+        const { data, error } = await supabaseClient.auth.exchangeCodeForSession(code);
+        if (error) {
+          showAlert("⚠️ هذا الرابط منتهي الصلاحية أو تم استخدامه مسبقاً. يرجى طلب رابط جديد من التطبيق.", "alert-error");
+          return;
+        }
+        currentSession = data.session;
+        showAlert("تم التحقق من هويتك بنجاح ✅<br>يرجى إدخال كلمة المرور الجديدة أدناه.", "alert-success");
+        document.getElementById("resetForm").style.display = "block";
+        return;
+      }
+
+      // إذا لم يكن هناك كود أو هاش بعد ثانية
+      setTimeout(async () => {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+          currentSession = session;
+          showAlert("تم التحقق من هويتك بنجاح ✅<br>يرجى إدخال كلمة المرور الجديدة أدناه.", "alert-success");
+          document.getElementById("resetForm").style.display = "block";
+        } else if (!currentSession) {
+          showAlert("⚠️ رابط غير صالح أو منتهي الصلاحية.<br>يرجى فتح الرابط مباشرة من البريد الإلكتروني.", "alert-error");
+        }
+      }, 1200);
+    }
+
+    checkUrlParams();
+
+    // حفظ كلمة المرور في قاعدة بيانات Supabase
     async function handleReset(e) {
       e.preventDefault();
       const pass = document.getElementById("newPass").value;
@@ -149,12 +168,12 @@
       const btn = document.getElementById("submitBtn");
 
       if (pass !== confirmPass) {
-        showAlert("كلمتا المرور غير متطابقتين!", "alert-error");
+        showAlert("⚠️ كلمتا المرور غير متطابقتين!", "alert-error");
         return;
       }
 
       if (pass.length < 6) {
-        showAlert("يجب أن تتكون كلمة المرور من 6 أحرف أو أرقام على الأقل", "alert-error");
+        showAlert("⚠️ كلمة المرور يجب أن تكون 6 أحرف/أرقام على الأقل.", "alert-error");
         return;
       }
 
@@ -162,28 +181,22 @@
       btn.innerText = "جاري تحديث قاعدة البيانات...";
 
       try {
-        // تحديث كلمة المرور في قاعدة البيانات
-        const { data, error } = await supabase.auth.updateUser({ password: pass });
+        const { data, error } = await supabaseClient.auth.updateUser({ password: pass });
         
         if (error) throw error;
 
-        // تسجيل الخروج فوراً لإنهاء صلاحية الرابط ليصبح مستخدماً لمرة واحدة فقط
-        await supabase.auth.signOut();
+        // تسجيل الخروج فوراً لكي لا يُعاد استخدام الرابط مرة أخرى
+        await supabaseClient.auth.signOut();
 
-        showAlert("🎉 تم تغيير كلمة المرور بنجاح في قاعدة البيانات! يمكنك الآن فتح التطبيق وتسجيل الدخول بكلمة المرور الجديدة.", "alert-success");
+        showAlert("🎉 <b>تم تغيير كلمة المرور بنجاح في قاعدة البيانات!</b><br>يمكنك الآن فتح التطبيق وتسجيل الدخول بكلمة مرورك الجديدة.", "alert-success");
         document.getElementById("resetForm").style.display = "none";
-      } catch (err) {
-        showAlert("⚠️ " + (err.message || "فشل التحديث. تأكد من فتح الرابط من الإيميل."), "alert-error");
-        btn.disabled = false;
-        btn.innerText = "حفظ كلمة المرور في قاعدة البيانات 🚀";
-      }
-    }
 
-    function showAlert(msg, type) {
-      const box = document.getElementById("alertBox");
-      box.className = "alert " + type;
-      box.innerText = msg;
-      box.style.display = "block";
+      } catch (err) {
+        console.error(err);
+        showAlert("⚠️ فشل التحديث: " + (err.message || "تأكد من فتح الرابط من الإيميل."), "alert-error");
+        btn.disabled = false;
+        btn.innerText = "حفظ وتحديث كلمة المرور 🚀";
+      }
     }
   </script>
 </body>
