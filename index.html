@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>إعادة تعيين كلمة المرور - رحلات الجزائر 🇩🇿</title>
-  <!-- مكتبة Supabase الرسمية المحدثة -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>تعيين كلمة المرور - رحلات الجزائر 🇩🇿</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body {
-      background: linear-gradient(135deg, #0B150F 0%, #12231A 100%);
+      background: #0B150F;
       color: #FFFFFF;
       display: flex;
       justify-content: center;
@@ -18,184 +16,170 @@
       padding: 20px;
     }
     .card {
-      background: rgba(20, 36, 27, 0.98);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      border-radius: 24px;
-      padding: 36px 24px;
+      background: #14241B;
+      border: 1px solid #10B981;
+      border-radius: 20px;
+      padding: 30px 20px;
       width: 100%;
-      max-width: 430px;
+      max-width: 400px;
       text-align: center;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    h2 { font-size: 20px; margin-bottom: 8px; color: #FFFFFF; }
-    p.subtitle { font-size: 13px; color: #94A3B8; margin-bottom: 20px; }
-    .input-group { margin-bottom: 16px; text-align: right; }
-    label { display: block; font-size: 12px; color: #CBD5E1; margin-bottom: 6px; font-weight: 600; }
+    h2 { margin-bottom: 8px; font-size: 20px; }
+    p.sub { font-size: 13px; color: #94A3B8; margin-bottom: 20px; }
+    .input-box { margin-bottom: 15px; text-align: right; }
+    label { display: block; font-size: 12px; margin-bottom: 5px; color: #E2E8F0; }
     input {
       width: 100%;
-      padding: 13px 14px;
-      background: rgba(11, 21, 15, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      border-radius: 12px;
-      color: #FFFFFF;
+      padding: 12px;
+      background: #0B150F;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: #FFF;
       font-size: 14px;
       outline: none;
-      transition: 0.2s border;
     }
     input:focus { border-color: #10B981; }
     button {
       width: 100%;
       padding: 14px;
       background: #10B981;
-      color: #FFFFFF;
-      font-size: 15px;
-      font-weight: 700;
+      color: #FFF;
+      font-size: 16px;
+      font-weight: bold;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       cursor: pointer;
       margin-top: 10px;
-      transition: 0.2s background;
     }
-    button:hover { background: #059669; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .alert { padding: 14px; border-radius: 12px; font-size: 13px; margin-bottom: 16px; line-height: 1.5; text-align: right; }
-    .alert-error { background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.4); }
-    .alert-success { background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.4); }
-    .alert-info { background: rgba(59, 130, 246, 0.2); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .alert {
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+    .error { background: #7F1D1D; color: #FCA5A5; border: 1px solid #EF4444; }
+    .success { background: #064E3B; color: #6EE7B7; border: 1px solid #10B981; }
+    .info { background: #1E3A8A; color: #93C5FD; border: 1px solid #3B82F6; }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <div style="font-size: 44px; margin-bottom: 10px;">🔑🇩🇿</div>
+    <div style="font-size: 40px; margin-bottom: 8px;">🔑🇩🇿</div>
     <h2>تغيير كلمة المرور</h2>
-    <p class="subtitle">منصة رحلات الجزائر</p>
+    <p class="sub">منصة رحلات الجزائر</p>
 
-    <div id="alertBox" class="alert alert-info">جاري التحقق من صلاحية الرابط... ⏳</div>
+    <div id="msgBox" class="alert info">جاري فحص رابط الاستعادة... ⏳</div>
 
-    <form id="resetForm" onsubmit="handleReset(event)" style="display: none;">
-      <div class="input-group">
-        <label for="newPass">كلمة المرور الجديدة</label>
-        <input type="password" id="newPass" placeholder="اكتب كلمة المرور الجديدة" required minlength="6">
+    <form id="resetForm" onsubmit="submitNewPassword(event)">
+      <div class="input-box">
+        <label>كلمة المرور الجديدة</label>
+        <input type="password" id="p1" placeholder="أدخل كلمة المرور الجديدة" required minlength="6">
       </div>
-
-      <div class="input-group">
-        <label for="confirmPass">تأكيد كلمة المرور</label>
-        <input type="password" id="confirmPass" placeholder="أعد كتابة كلمة المرور" required minlength="6">
+      <div class="input-box">
+        <label>تأكيد كلمة المرور</label>
+        <input type="password" id="p2" placeholder="أعد إدخال كلمة المرور" required minlength="6">
       </div>
-
-      <button type="submit" id="submitBtn">حفظ وتحديث كلمة المرور 🚀</button>
+      <button type="submit" id="btn">حفظ كلمة المرور الجديدة 🚀</button>
     </form>
   </div>
 
   <script>
-    // إعدادات Supabase الخاصة بمشروعك
     const SUPABASE_URL = "https://abzxeetfxnejlurqixun.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFienhlZXRmeG5lamx1cnFpeHVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNTQ5MzIsImV4cCI6MjEwMjczMDkzMn0.7w9NKOvO8yE5sXrjc1uUwLuzvL5uHMFgdm1Uxw1xAUA";
 
-    const { createClient } = window.supabase;
-    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true
-      }
-    });
+    let token = "";
 
-    let currentSession = null;
-
-    function showAlert(msg, type) {
-      const box = document.getElementById("alertBox");
+    function showMsg(text, type) {
+      const box = document.getElementById("msgBox");
       box.className = "alert " + type;
-      box.innerHTML = msg;
+      box.innerHTML = text;
       box.style.display = "block";
     }
 
-    // مراقبة حدث تغيير حالة المصادقة (PASSWORD_RECOVERY)
-    supabaseClient.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth Event:", event, session);
-      if (event === "PASSWORD_RECOVERY" || session) {
-        currentSession = session;
-        showAlert("تم التحقق من هويتك بنجاح ✅<br>يرجى إدخال كلمة المرور الجديدة أدناه.", "alert-success");
-        document.getElementById("resetForm").style.display = "block";
-      }
-    });
-
-    // معالجة الروابط عند تحميل الصفحة
-    async function checkUrlParams() {
-      const hash = window.location.hash;
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get("code");
-      const errorDescription = urlParams.get("error_description");
-
-      if (errorDescription) {
-        showAlert("⚠️ " + decodeURIComponent(errorDescription), "alert-error");
-        return;
-      }
-
-      if (code) {
-        const { data, error } = await supabaseClient.auth.exchangeCodeForSession(code);
-        if (error) {
-          showAlert("⚠️ هذا الرابط منتهي الصلاحية أو تم استخدامه مسبقاً. يرجى طلب رابط جديد من التطبيق.", "alert-error");
-          return;
+    // 1. استخراج التوكن بدقة عالية
+    function parseToken() {
+      // من الـ hash (#access_token=...)
+      if (window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        if (hashParams.get("access_token")) {
+          token = hashParams.get("access_token");
         }
-        currentSession = data.session;
-        showAlert("تم التحقق من هويتك بنجاح ✅<br>يرجى إدخال كلمة المرور الجديدة أدناه.", "alert-success");
-        document.getElementById("resetForm").style.display = "block";
-        return;
+      }
+      
+      // من الـ query (?access_token=...)
+      if (!token && window.location.search) {
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get("access_token")) {
+          token = searchParams.get("access_token");
+        }
       }
 
-      // إذا لم يكن هناك كود أو هاش بعد ثانية
-      setTimeout(async () => {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-          currentSession = session;
-          showAlert("تم التحقق من هويتك بنجاح ✅<br>يرجى إدخال كلمة المرور الجديدة أدناه.", "alert-success");
-          document.getElementById("resetForm").style.display = "block";
-        } else if (!currentSession) {
-          showAlert("⚠️ رابط غير صالح أو منتهي الصلاحية.<br>يرجى فتح الرابط مباشرة من البريد الإلكتروني.", "alert-error");
-        }
-      }, 1200);
+      if (token) {
+        showMsg("تم التحقق من هويتك بنجاح ✅<br>أدخل كلمة المرور الجديدة واضغط حفظ.", "success");
+      } else {
+        showMsg("⚠️ لم يتم العثور على رمز الأمان. يرجى فتح الرابط مباشرة من البريد الإلكتروني الذي وصلك.", "error");
+        document.getElementById("btn").disabled = true;
+      }
     }
 
-    checkUrlParams();
+    parseToken();
 
-    // حفظ كلمة المرور في قاعدة بيانات Supabase
-    async function handleReset(e) {
+    // 2. تحديث كلمة المرور عبر اتصال REST مباشر وسريع إلى قاعدة البيانات
+    async function submitNewPassword(e) {
       e.preventDefault();
-      const pass = document.getElementById("newPass").value;
-      const confirmPass = document.getElementById("confirmPass").value;
-      const btn = document.getElementById("submitBtn");
+      const p1 = document.getElementById("p1").value;
+      const p2 = document.getElementById("p2").value;
+      const btn = document.getElementById("btn");
 
-      if (pass !== confirmPass) {
-        showAlert("⚠️ كلمتا المرور غير متطابقتين!", "alert-error");
+      if (p1 !== p2) {
+        showMsg("⚠️ كلمتا المرور غير متطابقتين!", "error");
         return;
       }
 
-      if (pass.length < 6) {
-        showAlert("⚠️ كلمة المرور يجب أن تكون 6 أحرف/أرقام على الأقل.", "alert-error");
+      if (p1.length < 6) {
+        showMsg("⚠️ يجب أن تكون كلمة المرور 6 أحرف على الأقل!", "error");
+        return;
+      }
+
+      if (!token) {
+        showMsg("⚠️ الرابط غير صالح أو انتهت صلاحيته.", "error");
         return;
       }
 
       btn.disabled = true;
-      btn.innerText = "جاري تحديث قاعدة البيانات...";
+      btn.innerText = "جاري التحديث في قاعدة البيانات...";
 
       try {
-        const { data, error } = await supabaseClient.auth.updateUser({ password: pass });
-        
-        if (error) throw error;
+        const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ password: p1 })
+        });
 
-        // تسجيل الخروج فوراً لكي لا يُعاد استخدام الرابط مرة أخرى
-        await supabaseClient.auth.signOut();
+        const data = await response.json();
 
-        showAlert("🎉 <b>تم تغيير كلمة المرور بنجاح في قاعدة البيانات!</b><br>يمكنك الآن فتح التطبيق وتسجيل الدخول بكلمة مرورك الجديدة.", "alert-success");
-        document.getElementById("resetForm").style.display = "none";
-
+        if (response.ok) {
+          showMsg("🎉 <b>تم تغيير كلمة المرور بنجاح!</b><br>يمكنك الآن فتح التطبيق وتسجيل الدخول بكلمة مرورك الجديدة.", "success");
+          document.getElementById("resetForm").style.display = "none";
+          // إتلاف التوكن لضمان الاستخدام لمرة واحدة
+          token = "";
+        } else {
+          showMsg("⚠️ فشل التحديث: " + (data.msg || data.error_description || data.message || "الرابط منتهي الصلاحية"), "error");
+          btn.disabled = false;
+          btn.innerText = "حفظ كلمة المرور الجديدة 🚀";
+        }
       } catch (err) {
-        console.error(err);
-        showAlert("⚠️ فشل التحديث: " + (err.message || "تأكد من فتح الرابط من الإيميل."), "alert-error");
+        showMsg("⚠️ حدث خطأ في الاتصال بالسيرفر. حاول مرة أخرى.", "error");
         btn.disabled = false;
-        btn.innerText = "حفظ وتحديث كلمة المرور 🚀";
+        btn.innerText = "حفظ كلمة المرور الجديدة 🚀";
       }
     }
   </script>
